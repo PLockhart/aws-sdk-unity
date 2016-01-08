@@ -214,25 +214,34 @@ namespace Amazon.S3
 
         private void PostResponseHelper(IAsyncResult result)
         {
-            IAsyncExecutionContext executionContext = result.AsyncState as IAsyncExecutionContext;
-            IWebResponseData response = executionContext.ResponseContext.HttpResponse;
-            PostObjectResponse postResponse = new PostObjectResponse();
-            postResponse.HttpStatusCode = response.StatusCode;
-            postResponse.ContentLength = response.ContentLength;
+			IAsyncExecutionContext executionContext = result.AsyncState as IAsyncExecutionContext;
+			IWebResponseData response = executionContext.ResponseContext.HttpResponse;
+			PostObjectResponse postResponse;
 
-            if (response.IsHeaderPresent(HeaderKeys.XAmzRequestIdHeader))
-                postResponse.RequestId = response.GetHeaderValue(HeaderKeys.XAmzRequestIdHeader);
-            if (response.IsHeaderPresent(HeaderKeys.XAmzId2Header))
-                postResponse.HostId = response.GetHeaderValue(HeaderKeys.XAmzId2Header);
+			if (response != null)
+			{
+				postResponse = new PostObjectResponse();
+				postResponse.HttpStatusCode = response.StatusCode;
+				postResponse.ContentLength = response.ContentLength;
 
-            PostObjectRequest request = executionContext.RequestContext.OriginalRequest as PostObjectRequest;
+				if (response.IsHeaderPresent(HeaderKeys.XAmzRequestIdHeader))
+					postResponse.RequestId = response.GetHeaderValue(HeaderKeys.XAmzRequestIdHeader);
+				if (response.IsHeaderPresent(HeaderKeys.XAmzId2Header))
+					postResponse.HostId = response.GetHeaderValue(HeaderKeys.XAmzId2Header);
+			}
+			else
+			{
+				postResponse = null;
+			}
 
-            RuntimeAsyncResult asyncResult = executionContext.ResponseContext.AsyncResult as RuntimeAsyncResult;
-            asyncResult.Request = request;
-            asyncResult.Response = postResponse;
-            asyncResult.Exception = executionContext.ResponseContext.AsyncResult.Exception;
-            asyncResult.Action = executionContext.RequestContext.Action;
-            asyncResult.InvokeCallback();
+			PostObjectRequest request = executionContext.RequestContext.OriginalRequest as PostObjectRequest;
+
+			RuntimeAsyncResult asyncResult = executionContext.ResponseContext.AsyncResult as RuntimeAsyncResult;
+			asyncResult.Request = request;
+			asyncResult.Response = postResponse;
+			asyncResult.Exception = executionContext.ResponseContext.AsyncResult.Exception;
+			asyncResult.Action = executionContext.RequestContext.Action;
+			asyncResult.InvokeCallback();
         }
 
 
